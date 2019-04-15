@@ -21,20 +21,32 @@ class SessionServiceProvider extends ServiceProvider
 
         Session::extend('dynamodb', function($app)
         {
-            $client = new DynamoDbClient([
-                'region'  => config('dynamodb-session.region'),
-                'version' => 'latest',
-                'endpoint' => config('dynamodb-session.endpoint'),
-                'credentials' => [
+            $config = [
+                'version' => 'latest'
+            ];
+
+            if (config('dynamodb-session.region') !== null) {
+                $config['region'] = config('dynamodb-session.region');
+            }
+            if (config('dynamodb-session.endpoint') !== null) {
+                $config['endpoint'] = config('dynamodb-session.endpoint');
+            }
+            if (config('dynamodb-session.key') !== null && config('dynamodb-session.secret') !== null) {
+                $config['credentials'] = [
                     'key'    => config('dynamodb-session.key'),
                     'secret' => config('dynamodb-session.secret'),
-                ],
-            ]);
+                ];
+            } elseif (config('dynamodb-session.endpoint') === null) {
+                $config['credentials'] = false;
+            }
+
+            $client = new DynamoDbClient($config);
 
             $config = [
                 'table_name'       => config('session.table'),
                 'hash_key'         => config('dynamodb-session.hash_key'),
-                'session_lifetime' => 60 * config('session.lifetime')
+                // Laravel lifetime is in minutes
+                'session_lifetime' => config('session.lifetime') / 60
             ];
 
             return new DynamoHandler($client, $config);
