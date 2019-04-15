@@ -36,8 +36,6 @@ class SessionServiceProvider extends ServiceProvider
                     'key'    => config('dynamodb-session.key'),
                     'secret' => config('dynamodb-session.secret'),
                 ];
-            } elseif (config('dynamodb-session.endpoint') === null) {
-                $config['credentials'] = false;
             }
 
             $client = new DynamoDbClient($config);
